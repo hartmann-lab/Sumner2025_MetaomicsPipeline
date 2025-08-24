@@ -1,0 +1,11 @@
+channels:
+  - biobakery
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - biobakery::humann=3.9
+  - biobakery::anadama2
+  - bioconda::bowtie2>=2.4.4
+  - pip:
+      - baqlava

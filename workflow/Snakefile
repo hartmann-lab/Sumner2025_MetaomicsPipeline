@@ -1,0 +1,86 @@
+import pandas as pd
+import numpy as np
+
+configfile: "config/config.yaml"
+
+samples = pd.read_csv(config["samples"], sep="\t").set_index("sample", drop=False)
+samples.index.names = ["sample"]
+RESULTS = config["RESULTS"]
+
+# Make subsets to allow for conditional rules
+samples_AMP = samples.dropna(subset=["AMP_read1"])
+samples_MGX = samples.dropna(subset=["MGX_read1"])
+samples_MTX = samples.dropna(subset=["MTX_read1"])
+samples_MTX_MGX = samples_MTX.dropna(subset=["MGX_read1"])
+
+print(samples_MTX.shape)
+#print(samples_MGX)
+samples_MGX.to_csv("samples_MGX.csv", sep="\t")
+include: "rules/common.smk"
+include: "rules/01A_QIIME2.smk"
+include: "rules/02A_MGX_KneadData.smk"
+include: "rules/02B_MGX_MetaPhlAn.smk"
+include: "rules/02C_MGX_HUMAnN.smk"
+include: "rules/02D_MegaHIT.smk"
+include: "rules/02E_MGX_mOTUs.smk"
+include: "rules/02F_MGX_BAQLaVa.smk"
+include: "rules/03A_MTX_KneadData.smk"
+include: "rules/03B_MTX_MetaPhlAn.smk"
+include: "rules/03C_MTX_HUMAnN.smk"
+include: "rules/03C_MTX_HUMAnN_MGXMPA.smk"
+include: "rules/03D_MTX_Kraken2.smk"
+include: "rules/03C_MTX_HUMAnN_MGXMPA_ClosedReference.smk"
+include: "rules/03G_MTX_Align2Genomes.smk"
+include: "rules/03F_MTX_BAQLaVa.smk"
+include: "rules/03E_MTX_mOTUs.smk"
+include: "rules/03H_MTX_KrakenUniq.smk"
+
+
+rule all:
+    input:
+        RESULTS + "AMP/qiime2/setup/manifest.txt",
+        #RESULTS + "AMP/qiime2/artifacts/amp.qza", # qiime_import
+        #RESULTS + "AMP/qiime2/visuals/dada2.qzv", # summarize
+        #RESULTS + "AMP/qiime2/visuals/taxonomy.qzv", # summarize
+        #RESULTS + "AMP/qiime2/artifacts/rooted_tree.qza", # phylogeny
+        #RESULTS + "AMP/qiime2/artifacts/taxonomy.qza", # classifier
+        #RESULTS + "AMP/qiime2/visuals/barplot.qzv", # barplot
+
+        RESULTS + "MGX/metaphlan/mgx_metaphlan_abundance_table_species.txt", # MetaPhlAn species abundance
+        RESULTS + "MGX/kneaddata/mgx_kneaddata_count_table.tsv",
+        RESULTS + "MGX/final_tables/mgx_humann_genefamilies_cpm_KEGGOrthology_unstratified_named.tsv",
+        RESULTS + "MGX/kneaddata/mgx_human_chromosomal_coverage.tsv",
+        RESULTS + "MGX/humann/mgx_humann_genefamilies_cpm_PFAM.tsv",
+        expand(RESULTS + "MGX/megahit_paired4/{sample}/{sample}.contigs.fa", sample=samples_MGX["sample"]),
+        expand(RESULTS + "MGX/motus/{sample}/{sample}.tsv", sample=samples_MGX["sample"]),
+        expand(RESULTS + "MGX/baqlava/{sample}/{sample}_BAQLaVa_profile.txt", sample=samples_MGX["sample"]),
+
+        RESULTS + "MTX/kneaddata/mtx_kneaddata_count_table.tsv", # kneaddata count
+        RESULTS + "MTX/metaphlan/mtx_metaphlan_abundance_table_species.txt", # species level
+        RESULTS + "MTX/final_tables/mtx_humann_genefamilies_cpm_KEGGOrthology_unstratified_named.tsv",
+        RESULTS + "MTX/kraken2_silva/merged_bracken_report_profile.tsv",
+        RESULTS + "MTX/kraken2_standard/merged_kraken_report_profile.tsv",
+        RESULTS + "MTX/kraken2_standard/merged_bracken_report_profile.tsv",
+        RESULTS + "MTX/final_tables/humann_mgxmpa/mtx_humann_genefamilies_cpm_KEGGOrthology_unstratified_named.tsv",
+        RESULTS + "MTX/final_tables/humann_closed/mtx_humann_closed_genefamilies_cpm_PFAM_unstratified_named.tsv",
+        expand(RESULTS + "MTX/contig_alignment/{sample}/{sample}.bam", sample=samples_MTX["sample"]),
+        expand(RESULTS + "MTX/contig_alignment/{sample}/{sample}.tsv", sample=samples_MTX["sample"]),
+        expand(RESULTS + "MTX/baqlava/{sample}/{sample}_BAQLaVa_profile.txt", sample=samples_MTX["sample"]),
+        expand(RESULTS + "MTX/motus/{sample}/{sample}.tsv", sample=samples_MTX["sample"]),
+        expand(RESULTS + "MTX/kraken_uniq/{sample}/{sample}_krakenuniq_report.tsv", sample=samples_MTX["sample"]),
+        expand(RESULTS + "MTX/kraken_uniq/{sample}/{sample}.bracken.tsv", sample=samples_MTX["sample"])
+
+
+rule get_kraken2_standard_db:
+    output:
+        file = RESULTS + "databases/kraken_silva/k2_standard_20240904.tar.gz",
+        kraken2_db =  directory(RESULTS + "databases/kraken_standard/")
+    params:
+        kraken2_db = config["KRAKEN_DATABASE_STANDARD"]
+    shell:
+        """
+        cd $(dirname {output.file})
+        wget {params.kraken2_db}
+        tar -xvzf k2_standard_20240904.tar.gz -C ./
+        """
+

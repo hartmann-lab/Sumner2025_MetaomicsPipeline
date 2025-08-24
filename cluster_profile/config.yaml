@@ -1,0 +1,10 @@
+executor: slurm --ntasks={threads}
+jobs: 300
+default-resources:
+    mem: "5G"
+    slurm_account: "b1042"
+    slurm_partition: "genomics"
+    nodes: 1
+    runtime: 240
+
+

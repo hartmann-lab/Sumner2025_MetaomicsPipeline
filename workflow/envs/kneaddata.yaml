@@ -1,0 +1,6 @@
+name: kneaddata
+channels:
+  - biobakery
+dependencies:
+  - biobakery::kneaddata=0.12.0
+  - bioconda::java-jdk=8.0.112

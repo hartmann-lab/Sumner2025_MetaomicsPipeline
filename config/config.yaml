@@ -1,0 +1,15 @@
+
+samples: 'config/sample_sheet.tsv'
+RESULTS: 'results/'
+
+# RESOURCE CONFIGURATION
+MAX_THREADS: 10
+
+# DATABASE LINKS FOR DOWNLOAD WITH WGET. FOR LISTS, ACCESS AS: config['QIIME2_DATABASE'][1]
+QIIME2_DATABASE: ["https://data.qiime2.org/2021.11/common/silva-138-99-seqs.qza", "https://data.qiime2.org/2021.11/common/silva-138-99-tax.qza"] # [SEQUENCE, TAXA]
+METAPHLAN_DATABASE: ["mpa_vJun23_CHOCOPhlAnSGB_202403"] # [INDEX]
+
+KRAKEN_DATABASE_SILVA: ["https://genome-idx.s3.amazonaws.com/kraken/16S_Silva138_20200326.tgz"] # [URL]
+KRAKEN_DATABASE_STANDARD: ["https://genome-idx.s3.amazonaws.com/kraken/16S_Silva138_20200326.tgz"] # [URL]
+
+KRAKEN_TOOLS: ["https://github.com/jenniferlu717/KrakenTools/archive/d4a2fbe2833c2392a724697c0c97a3014e748474.zip", "d4a2fbe2833c2392a724697c0c97a3014e748474"] # [URL, COMMIT]

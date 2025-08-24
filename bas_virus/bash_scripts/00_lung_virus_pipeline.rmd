@@ -1,0 +1,50 @@
+Viral identification
+Genomad v1.11.0 - identified 7680 viral contigs
+parse contigs - keep >=2500bp, >=1 viral_hallmark, >=0.8 virus_score - 1254 viral contigs
+Update fasta headers using sed and concatenate all - fasta_headers_concat.sh then cat 
+create list of viral contigs that passed filtration and parse into a fasta using seqtk
+```
+module load seqtk
+
+cd /projects/b1042/HartmannLab/lung_phage/genomad/1_virus_fasta
+awk '{print $2}' genomad_quality_filtered.tsv > contig_list.txt
+seqtk subseq genomad_qual_virus.fna contig_list.txt > genomad_curated_virus.fna
+```
+
+depreplicate using megablast and checkv anicalc and aniclust python scripts - derep to # vOTUs
+```
+module load blast 
+cd derep_viruses
+cp /projects/b1042/HartmannLab/lung_phage/genomad/1_virus_fasta/genomad_curated_virus.fna /projects/b1042/HartmannLab/lung_phage/derep_viruses
+
+makeblastdb -in genomad_curated_virus.fna -dbtype nucl -out genomad_curated_virus
+
+salloc -N 1 -n 1 --mem=20G --time=08:00:00 --account=b1042 --partition=genomics
+
+blastn -query genomad_curated_virus.fna -db genomad_curated_virus -outfmt '6 std qlen slen' -max_target_seqs 10000 -out vOTU_blast.tsv -num_threads 1
+
+module load python
+
+python /projects/b1042/HartmannLab/lung_phage/scripts/anicalc.py -i vOTU_blast.tsv -o vOTU_ani.tsv
+
+python /projects/b1042/HartmannLab/lung_phage/scripts/aniclust.py --fna genomad_curated_virus.fna --ani vOTU_ani.tsv --out vOTU_clusters.tsv --min_ani 95 --min_tcov 85 --min_qcov 0
+
+awk '{print $1}' vOTU_clusters.tsv > vOTUs.txt
+
+seqtk subseq genomad_curated_virus.fna vOTUs.txt > vOTUs_genomad.fna
+```
+align reads to vOTUs using minimap
+get coverage depth with coverm
+
+
+
+Host identification
+reads aligned to assemblies using minimap2 and output as bam using samtools
+bam file sorted with samtools
+binned using semibin2 v. 2.2.0
+taxonomy identified with gtdbtk v.?
+checked bin quality using checkm
+added all bins with greater than 50% completion and less than 10% contamination to iphop database
+
+
+
