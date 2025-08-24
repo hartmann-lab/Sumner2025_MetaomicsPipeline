@@ -1,6 +1,6 @@
 # Metaomics Processing Pipeline (i.e., mlm2 beta)
 
-**mlm2** is a multiomics processing pipeline designed for meta-omic data analysis. Built using Snakemake, it orchestrates various tools to efficiently process and analyze large-scale multiomics datasets, with a focus on metagenomics and metatranscriptomics.
+**mlm2** is a multiomics processing pipeline designed for meta-omic data analysis. Built using Snakemake, it orchestrates various tools to efficiently process and analyze large-scale multiomics datasets, with a focus on metagenomics and metatranscriptomics. Virome analysis scripts are available in `bas_virome/` and were written by @sahutt.
 
 ## Features
 
