@@ -11,6 +11,8 @@
 - Customizable configuration via sample sheets and config files
 - Support for conda/mamba environments for robust dependency management
 
+![alt text](./images/MGX_v2.png)
+
 ## Requirements
 
 - `conda` >= 24.7.1
